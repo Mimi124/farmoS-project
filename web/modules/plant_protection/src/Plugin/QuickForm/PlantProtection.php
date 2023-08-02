@@ -45,7 +45,8 @@ use Drupal\taxonomy\TermInterface;
     use QuickQuantityTrait;
     use QuickStringTrait;
     use QuickFormElementsTrait;
-  
+    
+
     /**
      * The entity type manager service.
      *
@@ -144,22 +145,48 @@ use Drupal\taxonomy\TermInterface;
     
 
      // Name of the specific crops/plant species.
-     $form['crops'] = [
-        '#type' => 'container',
+      $form['crops'] = [
+        '#type' => 'entity_autocomplete',
         '#title' => $this->t('Crop/Plant Species'),
-        '#tree' => TRUE,
-        '#attributes' => ['id' => 'protected-crops'],
+        '#description' => $this->t('Type of Crop or Plant Species?'),
+        '#target_type' => 'plant_protection',
         '#required' => TRUE,
+        
       ];
 
       //Identity the pest or disease target for production
       $form['pest'] = [
-        '#type' => 'container',
+        '#type' => 'entity_autocomplete',
         '#title' => $this->t('Pest or Disease Targeted for protection'),
-        '#tree' => TRUE,
+        '#description' => $this->t('identify the pest or disease targeted for protection?'),
+        '#target_type' => 'plant_protection',
         '#required' => TRUE,
-
+        
       ];
+
+       // Locations.
+    $form['location'] = [
+      '#type' => 'entity_autocomplete',
+      '#title' => $this->t('Locations'),
+      '#description' => $this->t('Where is the assets loacted ?'),
+      '#target_type' => 'asset',
+      '#selection_handler' => 'views',
+      '#selection_settings' => [
+        'view' => [
+          'view_name' => 'farm_location_reference',
+          'display_name' => 'entity_reference',
+          'arguments' => [],
+        ],
+        'match_operator' => 'CONTAINS',
+      ],
+      '#maxlength' => 1024,
+      '#tags' => TRUE,
+      '#ajax' => [
+        'callback' => [$this, 'locationGeometryCallback'],
+        'wrapper' => 'location-geometry',
+        'event' => 'autocompleteclose change',
+      ],
+    ];
 
       // Create a set of checkboxes to enable log types, based on enabled modules,
       //Protection Method
@@ -171,96 +198,24 @@ use Drupal\taxonomy\TermInterface;
         
       );
 
-
       // Create a set of checkboxes to enable log types, based on enabled modules
       //Application Method
-      $log_type_modules = [
-        'method_spray' => [
-          'log_type' => 'spray',
-          'label' => $this->t('Spray'),
-          'default' => TRUE,
-        ],
-        'method_drip' => [
-          'log_type' => 'drip',
-          'label' => $this->t('Drip'),
-        ],
-        'method_hand' => [
-          'log_type' => 'hand',
-          'label' => $this->t('Hand'),
-        ],
-      ];
 
+      $form['application']['method'] = array(
+        '#type' => 'checkboxes',
+        '#options' => array('spray' => $this->t('Spray'), 'drip' => $this->t('Drip'), 
+                           'hand' => $this->t('Hand')),
+        '#title' => $this->t('Type of protection method applied?'),
+        
+      );
 
-      $log_type_options = [];
-      $log_type_defaults = [];
-      foreach ($log_type_modules as $module => $option) {
-        if ($this->moduleHandler->moduleExists($module) && $this->currentUser->hasPermission('create ' . $option['log_type'] . ' log')) {
-          $log_type_options[$option['log_type']] = $option['label'];
-          if (!empty($option['default'])) {
-            $log_type_defaults[$option['log_type']] = $option['log_type'];
-          }
-        }
-      }
-      if (!empty($log_type_options)) {
-        $form['log_types'] = [
-          '#type' => 'checkboxes',
-          '#title' => $this->t('What protection method was applied?'),
-          '#options' => $log_type_options,
-          '#default_value' => $log_type_defaults,
-          '#ajax' => [
-            'callback' => [$this, 'protectionLogsCallback'],
-            'wrapper' => 'protection-logs',
-          ],
-        ];
-      }
+      // Create a $form API array.
+      $form['quantity'] = array(
+        '#type' => 'tel',
+        '#title' => $this
+          ->t('Quantity'),
+      );
 
-      // Create a wrapper for logs.
-    $form['logs_wrapper'] = [
-        '#type' => 'container',
-        '#attributes' => ['id' => 'protection-logs'],
-      ];
-  
-      // Create vertical tabs for logs.
-      $form['logs_wrapper']['logs'] = [
-        '#type' => 'vertical_tabs',
-      ];
-
-      // Add log forms that can be created for this plant asset.
-    $enabled_logs = array_filter($form_state->getValue('log_types', $log_type_defaults));
-    if (in_array('spray', $enabled_logs)) {
-      $form['spray'] = [
-        '#type' => 'details',
-        '#title' => $this->t('Spray'),
-        '#group' => 'logs',
-        '#tree' => TRUE,
-      ];
-      $include_fields = ['date', 'location', 'weather', 'quantity', 'notes', 'done'];
-      $quantity_applied = ['count', 'length', 'weight', 'area', 'volume', 'ratio'];
-      $form['spray'] += $this->buildLogForm('spray', $include_fields, $quantity_applied);
-    }
-    if (in_array('drip', $enabled_logs)) {
-      $form['drip'] = [
-        '#type' => 'details',
-        '#title' => $this->t('Drip'),
-        '#group' => 'logs',
-        '#tree' => TRUE,
-      ];
-      $include_fields = ['date', 'location', 'weather', 'quantity', 'notes', 'done'];
-      $quantity_applied = ['count', 'length', 'weight', 'area', 'volume', 'ratio'];
-      $form['drip'] += $this->buildLogForm('drip', $include_fields, $quantity_applied);
-    }
-    if (in_array('hand', $enabled_logs)) {
-      $form['hand'] = [
-        '#type' => 'details',
-        '#title' => $this->t('hand'),
-        '#group' => 'logs',
-        '#tree' => TRUE,
-      ];
-      $include_fields = ['date', 'location', 'weather', 'quantity', 'notes', 'done'];
-      $quantity_applied = ['count', 'length', 'weight', 'area', 'volume', 'ratio'];
-      $form['hand'] += $this->buildLogForm('hand', $include_fields, $quantity_applied);
-    }
-  
 
     // Plant Protection asset name.
     // Provide a checkbox to allow customizing this. Otherwise it will be
@@ -268,7 +223,7 @@ use Drupal\taxonomy\TermInterface;
     $form['custom_name'] = [
         '#type' => 'checkbox',
         '#title' => $this->t('Customize plant protection asset name'),
-        '#description' => $this->t('The plant protection asset name will default to "[Location] [Crop]" but can be customized if desired.'),
+        '#description' => $this->t('The plant protection asset name will default to "[Date] [Crop]" but can be customized if desired.'),
         '#default_value' => FALSE,
         '#ajax' => [
           'callback' => [$this, 'protectionNameCallback'],
