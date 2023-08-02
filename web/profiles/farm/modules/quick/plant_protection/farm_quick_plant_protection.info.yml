@@ -1,0 +1,8 @@
+name: Plant Protection Quick Form
+description: Provides a quick form for recording  plant protection activities.
+type: module
+package: farmOS Quick Forms
+core_version_requirement: ^9
+dependencies:
+  - farm:farm_plant
+  - farm:farm_quick

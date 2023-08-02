@@ -1,0 +1,9 @@
+name: Entity Reference validators
+core_version_requirement: ^8 || ^9
+type: module
+description: 'Provides additional validators for entity reference fields.'
+
+# Information added by Drupal.org packaging script on 2022-05-19
+version: '8.x-1.0-beta1'
+project: 'entity_reference_validators'
+datestamp: 1652999744

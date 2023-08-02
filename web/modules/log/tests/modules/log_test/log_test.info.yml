@@ -1,0 +1,14 @@
+name: 'Log module tests'
+type: module
+description: 'Support module for log testing.'
+package: Testing
+core_version_requirement: ^8.8 || ^9
+
+dependencies:
+  - log:log
+  - token:token
+
+# Information added by Drupal.org packaging script on 2023-02-05
+version: '2.0.4'
+project: 'log'
+datestamp: 1675604232
