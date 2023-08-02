@@ -1,25 +1,22 @@
 <?php
+
 namespace Drupal\farm_quick_plant_protection\Plugin\QuickForm;
-
-
 
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\farm_quick\Plugin\QuickForm\QuickFormBase;
-use Drupal\farm_quick\Traits\QuickLogTrait;
-use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Extension\ModuleHandlerInterface;
 use Drupal\Core\Session\AccountInterface;
-use Drupal\farm_group\GroupMembershipInterface;
 use Drupal\Core\State\StateInterface;
 use Drupal\Core\Messenger\MessengerInterface;
 use Drupal\farm_quick\Traits\QuickAssetTrait;
 use Drupal\farm_quick\Traits\QuickQuantityTrait;
 use Drupal\farm_quick\Traits\QuickStringTrait;
 use Drupal\farm_quick\Traits\QuickFormElementsTrait;
+use Drupal\farm_quick\Traits\QuickLogTrait;
 use Psr\Container\ContainerInterface;
-use Drupal\farm_location\AssetLocationInterface;
 use Drupal\Core\Datetime\DrupalDateTime;
+use Drupal\taxonomy\TermInterface;
 
 
 
@@ -144,11 +141,15 @@ use Drupal\Core\Datetime\DrupalDateTime;
       '#required' => TRUE,
     ];
 
+    
+
      // Name of the specific crops/plant species.
      $form['crops'] = [
         '#type' => 'container',
+        '#title' => $this->t('Crop/Plant Species'),
         '#tree' => TRUE,
-        '#attributes' => ['id' => 'plant-crops'],
+        '#attributes' => ['id' => 'protected-crops'],
+        '#required' => TRUE,
       ];
 
       //Identity the pest or disease target for production
@@ -156,54 +157,20 @@ use Drupal\Core\Datetime\DrupalDateTime;
         '#type' => 'container',
         '#title' => $this->t('Pest or Disease Targeted for protection'),
         '#tree' => TRUE,
+        '#required' => TRUE,
 
       ];
 
       // Create a set of checkboxes to enable log types, based on enabled modules,
       //Protection Method
-      $log_type_module = [
-        'crop_pesticide' => [
-          'log_type' => 'pesticide',
-          'label' => $this->t('Pesticide'),
-          'default' => TRUE,
-        ],
-        'crop_herbicide' => [
-          'log_type' => 'herbicide',
-          'label' => $this->t('Herbicide'),
-        ],
-        'crop_fungicide' => [
-          'log_type' => 'fungicide',
-          'label' => $this->t('Fungicide'),
-        ],
-        'crop_natural_organic' => [
-            'log_type' => 'natural_organic',
-            'label' => $this->t('Natural / Organic '),
-          ],
-      ];
+      $form['plant_protection']['method'] = array(
+        '#type' => 'checkboxes',
+        '#options' => array('pesticide' => $this->t('Pesticide'), 'herbicide' => $this->t('Herbicide'), 
+                           'fungicide' => $this->t('Fungicide'), 'natural_organic' => $this->t('Natural / Organic ')),
+        '#title' => $this->t('Type of protection method applied?'),
+        
+      );
 
-      
-      $log_type_options = [];
-      $log_type_defaults = [];
-      foreach ($log_type_module as $module => $option) {
-        if ($this->moduleHandler->moduleExists($module) && $this->currentUser->hasPermission('create ' . $option['log_type'] . ' log')) {
-          $log_type_options[$option['log_type']] = $option['label'];
-          if (!empty($option['default'])) {
-            $log_type_defaults[$option['log_type']] = $option['log_type'];
-          }
-        }
-      }
-      if (!empty($log_type_options)) {
-        $form['log_types'] = [
-          '#type' => 'checkboxes',
-          '#title' => $this->t('Type of protection method applied?'),
-          '#options' => $log_type_options,
-          '#default_value' => $log_type_defaults,
-          '#ajax' => [
-            'callback' => [$this, 'plantLogsCallback'],
-            'wrapper' => 'plant-logs',
-          ],
-        ];
-      }
 
       // Create a set of checkboxes to enable log types, based on enabled modules
       //Application Method
@@ -241,8 +208,8 @@ use Drupal\Core\Datetime\DrupalDateTime;
           '#options' => $log_type_options,
           '#default_value' => $log_type_defaults,
           '#ajax' => [
-            'callback' => [$this, 'plantLogsCallback'],
-            'wrapper' => 'plant-logs',
+            'callback' => [$this, 'protectionLogsCallback'],
+            'wrapper' => 'protection-logs',
           ],
         ];
       }
@@ -250,7 +217,7 @@ use Drupal\Core\Datetime\DrupalDateTime;
       // Create a wrapper for logs.
     $form['logs_wrapper'] = [
         '#type' => 'container',
-        '#attributes' => ['id' => 'plant-logs'],
+        '#attributes' => ['id' => 'protection-logs'],
       ];
   
       // Create vertical tabs for logs.
@@ -304,7 +271,7 @@ use Drupal\Core\Datetime\DrupalDateTime;
         '#description' => $this->t('The plant protection asset name will default to "[Location] [Crop]" but can be customized if desired.'),
         '#default_value' => FALSE,
         '#ajax' => [
-          'callback' => [$this, 'plantNameCallback'],
+          'callback' => [$this, 'protectionNameCallback'],
           'wrapper' => 'plant-name',
         ],
       ];
@@ -617,21 +584,21 @@ protected function generatePlantName(FormStateInterface $form_state) {
  /**
    * Ajax callback for crop/variety fields.
    */
-  public function plantCropsCallback(array $form, FormStateInterface $form_state) {
+  public function protectionCropsCallback(array $form, FormStateInterface $form_state) {
     return $form['crops'];
   }
 
   /**
    * Ajax callback for logs fields.
    */
-  public function plantLogsCallback(array $form, FormStateInterface $form_state) {
+  public function protectionLogsCallback(array $form, FormStateInterface $form_state) {
     return $form['logs_wrapper'];
   }
 
   /**
    * Ajax callback for plant name field.
    */
-  public function plantNameCallback(array $form, FormStateInterface $form_state) {
+  public function protectionNameCallback(array $form, FormStateInterface $form_state) {
     return $form['name_wrapper'];
   }
 
