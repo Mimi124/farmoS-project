@@ -13,6 +13,13 @@ use Drupal\Core\Session\AccountInterface;
 use Drupal\farm_group\GroupMembershipInterface;
 use Drupal\Core\State\StateInterface;
 use Drupal\Core\Messenger\MessengerInterface;
+use Drupal\farm_quick\Traits\QuickAssetTrait;
+use Drupal\farm_quick\Traits\QuickQuantityTrait;
+use Drupal\farm_quick\Traits\QuickStringTrait;
+use Drupal\farm_quick\Traits\QuickFormElementsTrait;
+use Psr\Container\ContainerInterface;
+use Drupal\farm_location\AssetLocationInterface;
+use Drupal\Core\Datetime\DrupalDateTime;
 
 
 
@@ -25,9 +32,9 @@ use Drupal\Core\Messenger\MessengerInterface;
  *   id = "plant_protection",
  *   label = @Translation("Plant Protection"),
  *   description = @Translation("Record a Plant Protection."),
- *   helpText = @Translation("This form will create a plant asset, along with optional logs to represent seeding date, harvest date, etc."),
+ *   helpText = @Translation("This form will create a plant protection asset"),
  *   permissions = {
- *     "create plant asset",
+ *     "create plant protection asset",
  *   }
  * )
  *
@@ -101,17 +108,13 @@ use Drupal\Core\Messenger\MessengerInterface;
    *   Current user object.
    */
 
-
-   public function __construct(array $configuration, $plugin_id, $plugin_definition, MessengerInterface $messenger, EntityTypeManagerInterface $entity_type_manager, ModuleHandlerInterface $module_handler, ConfigFactoryInterface $config_factory, AssetLocationInterface $asset_location,StateInterface $state, AccountInterface $current_user) {
+   public function __construct(array $configuration, $plugin_id, $plugin_definition, MessengerInterface $messenger, EntityTypeManagerInterface $entity_type_manager, ModuleHandlerInterface $module_handler, StateInterface $state, AccountInterface $current_user) {
     parent::__construct($configuration, $plugin_id, $plugin_definition, $messenger);
     $this->messenger = $messenger;
     $this->entityTypeManager = $entity_type_manager;
     $this->moduleHandler = $module_handler;
-    $this->configFactory = $config_factory;
-    $this->assetLocation = $asset_location;
-    $this->currentUser = $current_user;
     $this->state = $state;
-   
+    $this->currentUser = $current_user;
   }
 
   /**
@@ -125,10 +128,8 @@ use Drupal\Core\Messenger\MessengerInterface;
       $container->get('messenger'),
       $container->get('entity_type.manager'),
       $container->get('module_handler'),
-      $container->get('config.factory'),
-      $container->get('asset.location'),
-      $container->get('current_user'),
       $container->get('state'),
+      $container->get('current_user'),
     );
   }
 
