@@ -446,42 +446,7 @@ protected function generateInputLogName(FormStateInterface $form_state) {
          
         ]);
     
-        // Generate logs.
-        $log_types = [
-          'spray',
-          'drip',
-          'hand',
-        ];
-        foreach ($log_types as $log_type) {
     
-          // If there are no values for this log type, skip it.
-          if (!$form_state->hasValue($log_type)) {
-            continue;
-          }
-    
-          // Get the log values.
-          $log_values = $form_state->getValue($log_type);
-    
-          // Name the log based on the type and asset.
-          switch ($log_type) {
-            case 'spray':
-              $log_name = $this->t('Spray @asset', ['@asset' => $plant_protection_asset->label()]);
-              break;
-    
-            case 'drip':
-              $log_name = $this->t('Drip @asset', ['@asset' => $plant_protection_asset->label()]);
-              break;
-    
-            case 'hand':
-              $log_name = $this->t('Hand @asset', ['@asset' => $plant_protection_asset->label()]);
-              break;
-          }
-    
-          // If the log is a seeding or transplanting, it is a movement.
-            $is_movement = FALSE;
-            if (in_array($log_type, ['spray', 'drip'])) {
-              $is_movement = TRUE;
-            }
        
           // Set the log status.
           $status = 'pending';
@@ -491,7 +456,7 @@ protected function generateInputLogName(FormStateInterface $form_state) {
     
           // Create the log.
           $this->createLog([
-            'type' => $log_type,
+            // 'type' => $log_type,
             'name' => $log_name,
             'timestamp' => $log_values['date']->getTimestamp(),
             'asset' => $plant_protection_asset,
