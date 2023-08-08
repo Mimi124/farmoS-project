@@ -264,7 +264,7 @@ $databases = [];
  *   $settings['hash_salt'] = file_get_contents('/home/example/salt.txt');
  * @endcode
  */
-$settings['hash_salt'] = 'krxBaMqhj6cZ9xP5OEJeJXHYYF0SccNakDhBtem0hWqLQEjHCLGumJC0QhT7gvotb4W9zuKCYA';
+$settings['hash_salt'] = 'cgQu8PVLuhkaBeYB9W1jEAGLxMx59cmrNU1i4kOSOhyI7kbtwmDyshDM8jeztkGBOwBQvgy9fw';
 
 /**
  * Deployment identifier.
@@ -834,8 +834,8 @@ $settings['migrate_node_migrate_type_classic'] = FALSE;
 # }
 $databases['default']['default'] = array (
   'database' => 'farmos',
-  'username' => 'Mims',
-  'password' => 'Wichpass',
+  'username' => 'username',
+  'password' => 'password',
   'prefix' => '',
   'host' => 'localhost',
   'port' => '3306',
@@ -843,4 +843,4 @@ $databases['default']['default'] = array (
   'driver' => 'mysql',
   'autoload' => 'core/modules/mysql/src/Driver/Database/mysql/',
 );
-$settings['config_sync_directory'] = 'sites/default/files/config_wk6IFg_QuWeJylee0IMdbUiDrglpIr1EvMBWB3mmTMEzH6fiHjB3mmUXcNJVr9tLbDOtlQa5tg/sync';
+$settings['config_sync_directory'] = 'sites/default/files/config_2G3nXVuuY8AWhoBB1BMVnLLHegxAx8Pt6fMRpLRmc_wy30FfpFq6JmgxBEwkXVS8m6Nyi5_JjQ/sync';

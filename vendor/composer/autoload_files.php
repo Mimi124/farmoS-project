@@ -37,7 +37,11 @@ return array(
     '2f69d3914119f042cca9e44442d5ce95' => $baseDir . '/web/core/includes/bootstrap.inc',
     '6db5533840cb1ae1bc049452845aa88e' => $baseDir . '/web/core/includes/guzzle_php81_shim.php',
     '8825ede83f2f289127722d4e842cf7e8' => $vendorDir . '/symfony/polyfill-intl-grapheme/bootstrap.php',
+    '6124b4c8570aa390c21fafd04a26c69f' => $vendorDir . '/myclabs/deep-copy/src/DeepCopy/deep_copy.php',
+    '9b38cf48e83f5d8f60375221cd213eee' => $vendorDir . '/phpstan/phpstan/bootstrap.php',
     'b6b991a57620e2fb6b2f66f03fe9ddc2' => $vendorDir . '/symfony/string/Resources/functions.php',
     '9e4824c5afbdc1482b6025ce3d4dfde8' => $vendorDir . '/league/csv/src/functions_include.php',
+    'ec07570ca5a812141189b1fa81503674' => $vendorDir . '/phpunit/phpunit/src/Framework/Assert/Functions.php',
     '801c31d8ed748cfa537fa45402288c95' => $vendorDir . '/psy/psysh/src/functions.php',
+    '92c8763cd6170fce6fcfe7e26b4e8c10' => $vendorDir . '/symfony/phpunit-bridge/bootstrap.php',
 );

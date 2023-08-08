@@ -125,8 +125,6 @@ class Movement extends QuickFormBase implements QuickFormInterface {
         ],
       ],
       '#maxlength' => 1024,
-      '#tags' => TRUE,
-      '#required' => TRUE,
       '#ajax' => [
         'callback' => [$this, 'assetGeometryCallback'],
         'wrapper' => 'asset-geometry',
