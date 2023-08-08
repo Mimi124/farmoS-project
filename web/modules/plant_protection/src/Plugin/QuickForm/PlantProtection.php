@@ -158,7 +158,7 @@ use Drupal\taxonomy\TermInterface;
       $form['pest'] = [
         '#type' => 'entity_autocomplete',
         '#title' => $this->t('Pest or Disease Targeted for protection'),
-        '#description' => $this->t('identify the pest or disease targeted for protection?'),
+        '#description' => $this->t('Identify the pest or disease targeted for protection?'),
         '#target_type' => 'plant_protection',
         '#required' => TRUE,
         
@@ -261,7 +261,7 @@ use Drupal\taxonomy\TermInterface;
    * @return array
    *   Returns a Form API array.
    */
-  protected function buildLogForm(string $log_type, array $include_fields = [], array $quantity_applied = []) {
+  protected function buildLogForm(string $log_type, array $include_fields = [], array $quantity_measures = []) {
     $form = [];
 
     // Add a hidden value for the log type.
@@ -271,16 +271,16 @@ use Drupal\taxonomy\TermInterface;
     ];
 
     // Filter the available quantity measures, if desired.
-    $quantity_applied_options = quantity_applied_options();
-    $filtered_quantity_applied_options = $quantity_applied_options;
-    if (!empty($quantity_applied)) {
-      $filtered_quantity_applied_options = [];
-      foreach ($quantity_applied as $applied) {
-        if (!empty($quantity_applied_options[$applied])) {
-          $filtered_quantity_applied_options[$measure] = $quantity_applied_options[$applied];
-        }   
+    $quantity_measure_options = quantity_measure_options();
+    $filtered_quantity_measure_options = $quantity_measure_options;
+    if (!empty($quantity_measures)) {
+      $filtered_quantity_measure_options = [];
+      foreach ($quantity_measures as $measure) {
+        if (!empty($quantity_measure_options[$measure])) {
+          $filtered_quantity_measure_options[$measure] = $quantity_measure_options[$measure];
+        }
+      }
     }
- }
 
   // Create log fields.
   $field_info = [];
@@ -310,22 +310,22 @@ use Drupal\taxonomy\TermInterface;
     ],
     '#required' => TRUE,
 ];
-    $field_info['weather'] = [
-        '#type' => 'entity_autocomplete',
-        '#title' => $this->t('Weather'),
-        '#description' => $this->t('Note the weather condition during the application'),
-        '#target_type' => 'asset',
-        '#selection_handler' => 'views',
-        '#selection_settings' => [
-          'view' => [
-            'view_name' => 'farm_weather_reference',
-            'display_name' => 'entity_reference',
-            'arguments' => [],
-          ],
-          'match_operator' => 'CONTAINS',
-        ],
-        '#required' => TRUE,
-  ];
+  //   $field_info['weather'] = [
+  //       '#type' => 'entity_autocomplete',
+  //       '#title' => $this->t('Weather'),
+  //       '#description' => $this->t('Note the weather condition during the application'),
+  //       '#target_type' => 'asset',
+  //       '#selection_handler' => 'views',
+  //       '#selection_settings' => [
+  //         'view' => [
+  //           'view_name' => 'farm_weather_reference',
+  //           'display_name' => 'entity_reference',
+  //           'arguments' => [],
+  //         ],
+  //         'match_operator' => 'CONTAINS',
+  //       ],
+  //       '#required' => TRUE,
+  // ];
   $field_info['quantity'] = $this->buildInlineContainer();
   $field_info['quantity']['value'] = [
     '#type' => 'textfield',
@@ -348,7 +348,7 @@ use Drupal\taxonomy\TermInterface;
   $field_info['quantity']['measure'] = [
     '#type' => 'select',
     '#title' => $this->t('Measure'),
-    '#options' => $filtered_quantity_applied_options,
+    '#options' => $filtered_quantity_measure_options,
     '#default_value' => 'weight',
   ];
   $field_info['notes'] = [
@@ -364,6 +364,16 @@ use Drupal\taxonomy\TermInterface;
 
   return $form;
  }
+
+ /**
+   * Generate plant protection asset name.
+   *
+   * @param \Drupal\Core\Form\FormStateInterface $form_state
+   *   The form state object.
+   *
+   * @return string
+   *   Returns a plant protection asset name string.
+   */
 
  
 protected function generateInputLogName(FormStateInterface $form_state) {
@@ -415,16 +425,21 @@ protected function generateInputLogName(FormStateInterface $form_state) {
     }
  
 
+  /**
+   * {@inheritdoc}
+   */
+
+
     public function submitForm(array &$form, FormStateInterface $form_state) {
 
-        // If a custom plant name was provided, use that. Otherwise generate one.
+        // If a custom plant protection name was provided, use that. Otherwise generate one.
         $plant_name = $this->generateInputLogName($form_state);
         if (!empty($form_state->getValue('custom_name', FALSE)) && $form_state->hasValue('name')) {
           $plant_name = $form_state->getValue('name');
         }
     
-        // Create a new planting asset.
-        $plant_protection_asset = $this->createAsset([
+        // Create a new planting protection asset.
+        $plant_protection_asset = $this->createLog([
           'type' => 'plant',
           'name' => $plant_name,
           'plant_type' => $form_state->getValue('crops'),
@@ -462,6 +477,11 @@ protected function generateInputLogName(FormStateInterface $form_state) {
               break;
           }
     
+          // If the log is a seeding or transplanting, it is a movement.
+            $is_movement = FALSE;
+            if (in_array($log_type, ['spray', 'drip'])) {
+              $is_movement = TRUE;
+            }
        
           // Set the log status.
           $status = 'pending';
@@ -477,7 +497,7 @@ protected function generateInputLogName(FormStateInterface $form_state) {
             'asset' => $plant_protection_asset,
             'quantity' => [$this->prepareQuantity($log_values['quantity'])],
             'location' => $log_values['location'] ?? NULL,
-            'weather' => $log_values['weather'] ?? NULL,
+            'is_movement' => $is_movement,
             'notes' => $log_values['notes'] ?? NULL,
             'status' => $status,
           ]);

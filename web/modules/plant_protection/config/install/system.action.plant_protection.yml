@@ -1,0 +1,11 @@
+langcode: en
+status: true
+dependencies:
+  module:
+    - asset
+    - farm_plant
+id: plant_protect
+label: 'Record Plant Protection Activities'
+type: asset
+plugin: plant_protect
+configuration: {  }
