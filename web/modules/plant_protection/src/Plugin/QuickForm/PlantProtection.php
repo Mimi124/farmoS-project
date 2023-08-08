@@ -239,7 +239,7 @@ use Drupal\taxonomy\TermInterface;
           '#type' => 'textfield',
           '#title' => $this->t('Plant Protectection asset name'),
           '#maxlength' => 255,
-          '#default_value' => $this->generatePlantName($form_state),
+          '#default_value' => $this->generateInputLogName($form_state),
           '#required' => TRUE,
         ];
       }
@@ -366,7 +366,7 @@ use Drupal\taxonomy\TermInterface;
  }
 
  
-protected function generatePlantName(FormStateInterface $form_state) {
+protected function generateInputLogName(FormStateInterface $form_state) {
 
   // Get the crop/variety names.
   /** @var \Drupal\taxonomy\TermInterface[] $crops */
@@ -418,7 +418,7 @@ protected function generatePlantName(FormStateInterface $form_state) {
     public function submitForm(array &$form, FormStateInterface $form_state) {
 
         // If a custom plant name was provided, use that. Otherwise generate one.
-        $plant_name = $this->generatePlantName($form_state);
+        $plant_name = $this->generateInputLogName($form_state);
         if (!empty($form_state->getValue('custom_name', FALSE)) && $form_state->hasValue('name')) {
           $plant_name = $form_state->getValue('name');
         }
