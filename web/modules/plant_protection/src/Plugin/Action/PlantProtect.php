@@ -20,7 +20,7 @@ class PlantProtect extends QuickFormActionBase {
    * {@inheritdoc}
    */
   public function getQuckFormId(): string {
-    return 'plant_protect';
+    return 'plant_protection';
   }
 
 }

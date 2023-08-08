@@ -118,6 +118,8 @@ use Drupal\taxonomy\TermInterface;
   /**
    * {@inheritdoc}
    */
+
+
   public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition) {
     return new static(
       $configuration,
@@ -131,7 +133,10 @@ use Drupal\taxonomy\TermInterface;
     );
   }
 
-  
+   /**
+   * {@inheritdoc}
+   */
+
   public function buildForm(array $form, FormStateInterface $form_state) {
 
     // Date of plant protection activity.
@@ -143,10 +148,9 @@ use Drupal\taxonomy\TermInterface;
     ];
 
     
-
      // Name of the specific crops/plant species.
       $form['crops'] = [
-        '#type' => 'entity_autocomplete',
+        '#type' => 'textfield',
         '#title' => $this->t('Crop/Plant Species'),
         '#description' => $this->t('Type of Crop or Plant Species?'),
         '#target_type' => 'plant_protection',
@@ -156,7 +160,7 @@ use Drupal\taxonomy\TermInterface;
 
       //Identity the pest or disease target for production
       $form['pest'] = [
-        '#type' => 'entity_autocomplete',
+        '#type' => 'textfield',
         '#title' => $this->t('Pest or Disease Targeted for protection'),
         '#description' => $this->t('Identify the pest or disease targeted for protection?'),
         '#target_type' => 'plant_protection',
@@ -248,7 +252,10 @@ use Drupal\taxonomy\TermInterface;
 
     }
 
-  /**
+ 
+ 
+ 
+    /**
    * Build a simplified log form.
    *
    * @param string $log_type
@@ -261,7 +268,7 @@ use Drupal\taxonomy\TermInterface;
    * @return array
    *   Returns a Form API array.
    */
-  protected function buildLogForm(string $log_type, array $include_fields = [], array $quantity_measures = []) {
+  protected function buildLogForm(string $log_type, array $include_fields = [], array $quantity_applied = []) {
     $form = [];
 
     // Add a hidden value for the log type.
@@ -439,24 +446,26 @@ protected function generateInputLogName(FormStateInterface $form_state) {
         }
     
         // Create a new planting protection asset.
-        $plant_protection_asset = $this->createLog([
+        $plant_protection_asset = $this->createAsset([
           'type' => 'plant',
           'name' => $plant_name,
           'plant_type' => $form_state->getValue('crops'),
          
         ]);
     
+        
+        foreach ($log_types as $log_type) {
     
-       
-          // Set the log status.
-          $status = 'pending';
-          if (!empty($log_values['done'])) {
-            $status = 'done';
+          // If there are no values for this log type, skip it.
+          if (!$form_state->hasValue($log_type)) {
+            continue;
           }
+    
+    
     
           // Create the log.
           $this->createLog([
-            // 'type' => $log_type,
+            'type' => $log_type,
             'name' => $log_name,
             'timestamp' => $log_values['date']->getTimestamp(),
             'asset' => $plant_protection_asset,
