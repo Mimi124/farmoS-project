@@ -4,8 +4,6 @@ type: module
 package: farmOS Quick Forms
 core_version_requirement: ^9
 dependencies:
-  - farm:farm_entity
+  - farm:farm_input
   - farm:farm_quick
-  - farm:farm_activity
-  - log:log
- 
+  - farm:farm_entity
