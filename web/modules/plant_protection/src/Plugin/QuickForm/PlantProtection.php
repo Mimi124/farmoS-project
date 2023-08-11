@@ -188,7 +188,7 @@ class PlantProtection extends QuickFormBase {
       
       
           $form['quantities'] = [
-            '#type' => 'textfield',
+            '#type' => 'tel',
             '#title' => t('Quantities'),
             '#required' => TRUE,
         ];
