@@ -36,7 +36,7 @@ class Seed extends FarmAssetType {
       ],
       'season' => [
         'type' => 'entity_reference',
-        'label' => $this->t('Season'),
+        'label' => $this->t('Year'),
         'description' => $this->t('Assign this to a season for easier searching later.'),
         'target_type' => 'taxonomy_term',
         'target_bundle' => 'season',

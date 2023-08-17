@@ -36,8 +36,8 @@ class Plant extends FarmAssetType {
       ],
       'season' => [
         'type' => 'entity_reference',
-        'label' => $this->t('Season'),
-        'description' => $this->t('Assign this to a season for easier searching later.'),
+        'label' => $this->t('Year'),
+        'description' => $this->t('Assign this to a year for easier searching later.'),
         'target_type' => 'taxonomy_term',
         'target_bundle' => 'season',
         'auto_create' => TRUE,

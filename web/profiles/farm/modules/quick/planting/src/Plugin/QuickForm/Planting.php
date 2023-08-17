@@ -127,8 +127,8 @@ class Planting extends QuickFormBase {
     // Seasons.
     $form['seasons'] = [
       '#type' => 'entity_autocomplete',
-      '#title' => $this->t('Season'),
-      '#description' => $this->t('What season(s) will this be part of? This is used for organizing assets for future reference, and can be something like "@year" or "@year Summer". This will be prepended to the plant asset name.', ['@year' => date('Y')]),
+      '#title' => $this->t('Year'),
+      '#description' => $this->t('What year will this be part of? This is used for organizing assets for future reference, and can be something like "@year". This will be prepended to the plant asset name.', ['@year' => date('Y')]),
       '#target_type' => 'taxonomy_term',
       '#selection_settings' => [
         'target_bundles' => ['season'],

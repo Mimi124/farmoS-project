@@ -14,10 +14,14 @@ use Drupal\farm_location\AssetLocationInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Messenger\MessengerInterface;
 use Psr\Container\ContainerInterface;
+// use Drupal\geolocation\Plugin\Field\FieldType\GeolocationFieldItemList;
+// use Drupal\commerce_physical\Plugin\Field\FieldType\MeasurementItem;
+
+
 
 
 /**
- * Movement quick form.
+ * Plant Protection quick form.
  *
  * @QuickForm(
  *   id = "plant_protection",
@@ -129,7 +133,7 @@ class PlantProtection extends QuickFormBase {
 
 
       //Plant/Crop
-        $form['crops'] = [
+        $form['crop'] = [
             '#type' => 'textfield',
             '#title' => t('Crop/Plant Species'),
             '#description' => $this->t('Type of Crop or Plant Species?'),
@@ -170,6 +174,8 @@ class PlantProtection extends QuickFormBase {
             ],
         ];
 
+    
+
         $form['products_used']= array(
             '#type' => 'checkboxes',
             '#options' => array('pesticide' => $this->t('Pesticide'), 'herbicide' => $this->t('Herbicide'), 
@@ -192,8 +198,9 @@ class PlantProtection extends QuickFormBase {
             '#title' => t('Quantities'),
             '#required' => TRUE,
         ];
-    
-       
+
+   
+   
     
         return $form;
       }
@@ -231,6 +238,11 @@ class PlantProtection extends QuickFormBase {
     return $entities;
   }
 
+
+
+
+
+
      /**
      * {@inheritdoc}
      */
@@ -242,7 +254,7 @@ class PlantProtection extends QuickFormBase {
             $log = [
                 'type' => 'input',
                 'timestamp' => $timestamp,              
-                'crops' => $form_state->getValue('crops'),
+                'crop' => $form_state->getValue('crop'),
                 'pest' => $form_state->getValue('pest'),
                 'location' => $form_state->getValue('location'),
                 'application_method' => $form_state->getValue('application_method'),
@@ -251,16 +263,16 @@ class PlantProtection extends QuickFormBase {
             ];
            
             // Load locations.
-            $crops = $this->loadEntityAutocompleteAssets($form_state->getValue('crop'));
-            $locations = $this->loadEntityAutocompleteAssets($form_state->getValue('location'));
+            // $crops = $this->loadEntityAutocompleteAssets($form_state->getValue('crop'));
+            // $locations = $this->loadEntityAutocompleteAssets($form_state->getValue('location'));
        
-            // Generate a name for the log.
-            $crop_names = $this->entityLabelsSummary($crops);
-            $location_names = $this->entityLabelsSummary($locations);
-            $log['name'] = $this->t('Protected Plants @crops', ['@crops' => $crop_names]);
-            if (!empty($location_names)) {
-            $log['name'] = $this->t('Protected Plant @crops to @locations', ['@crops' => $crop_names, '@locations' => $location_names]);
-            }
+            // // Generate a name for the log.
+            // $crop_names = $this->entityLabelsSummary($crops);
+            // $location_names = $this->entityLabelsSummary($locations);
+            // $log['name'] = $this->t('Protected Plants @crops', ['@crops' => $crop_names]);
+            // if (!empty($location_names)) {
+            // $log['name'] = $this->t('Protected Plant @crops to @locations', ['@crops' => $crop_names, '@locations' => $location_names]);
+            // }
 
               // Display a message to the user after data is saved.
                 // drupal_set_message(t('Form submission successful'));
