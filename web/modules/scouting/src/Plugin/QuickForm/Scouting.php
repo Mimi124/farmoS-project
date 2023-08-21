@@ -327,9 +327,9 @@ class Scouting extends QuickFormBase {
        // Generate a name for the log.
        $asset_names = $this->entityLabelsSummary($assets);
        $location_names = $this->entityLabelsSummary($locations);
-       $log['name'] = $this->t('Clear location of @assets', ['@assets' => $asset_names]);
+       $log['name'] = $this->t('Observing @assets', ['@assets' => $asset_names]);
        if (!empty($location_names)) {
-         $log['name'] = $this->t('Observe @assets in @locations', ['@assets' => $asset_names, '@locations' => $location_names]);
+         $log['name'] = $this->t('Observing @assets in @locations', ['@assets' => $asset_names, '@locations' => $location_names]);
        }
    
      
