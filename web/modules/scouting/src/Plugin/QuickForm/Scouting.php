@@ -1,6 +1,6 @@
 <?php
 
-namespace Drupal\farm_quick_maintenance\Plugin\QuickForm;
+namespace Drupal\farm_quick_scouting\Plugin\QuickForm;
 
 use Drupal\Core\Datetime\DrupalDateTime;
 use Drupal\Core\Form\FormStateInterface;
@@ -10,49 +10,40 @@ use Drupal\farm_quick\Plugin\QuickForm\QuickFormBase;
 use Drupal\farm_quick\Traits\QuickFormElementsTrait;
 use Drupal\farm_quick\Traits\QuickLogTrait;
 use Drupal\farm_quick\Traits\QuickStringTrait;
+use Drupal\farm_quick\Traits\QuickAssetTrait;
 use Drupal\farm_location\AssetLocationInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Messenger\MessengerInterface;
 use Psr\Container\ContainerInterface;
 
+
 /**
- * Maintenance quick form.
+ * Scouting quick form.
  *
  * @QuickForm(
- *   id = "maintenance",
- *   label = @Translation("Maintenance"),
- *   description = @Translation("Record a field maintenance log."),
- *   helpText = @Translation("Use this form to record field maintenance log."),
+ *   id = "scouting",
+ *   label = @Translation("Scouting"),
+ *   description = @Translation("Record a field observation."),
+ *   helpText = @Translation("Use this form to record field observations. A new observation log will be created tied to land asset records."),
  *   permissions = {
- *     "create maintenance log",
+ *     "create observation log",
  *   }
  * )
  */
+class Scouting extends QuickFormBase {
 
- class Maintenance extends QuickFormBase {
+  use QuickAssetTrait;
+  use QuickLogTrait;
+  use QuickFormElementsTrait;
+  use QuickStringTrait;
 
-    use QuickLogTrait;
-    use QuickFormElementsTrait;
-    use QuickStringTrait;
-
-
-
-    // public function getFormId() {
-    //   return 'plant_protection_form';
-    // }
-
-
-      /**
-     * {@inheritdoc}
-     */
-
-    
   /**
    * The entity type manager service.
    *
    * @var \Drupal\Core\Entity\EntityTypeManagerInterface
    */
   protected $entityTypeManager;
+
 
   /**
    * Asset location service.
@@ -61,15 +52,14 @@ use Psr\Container\ContainerInterface;
    */
   protected $assetLocation;
 
-
- /**
+  /**
    * Current user object.
    *
    * @var \Drupal\Core\Session\AccountInterface
    */
   protected $currentUser;
 
-    /**
+  /**
    * Constructs a QuickFormBase object.
    *
    * @param array $configuration
@@ -89,7 +79,7 @@ use Psr\Container\ContainerInterface;
    */
 
 
-  public function __construct(array $configuration, $plugin_id, $plugin_definition, MessengerInterface $messenger, EntityTypeManagerInterface $entity_type_manager, AssetLocationInterface $asset_location, AccountInterface $current_user) {
+   public function __construct(array $configuration, $plugin_id, $plugin_definition, MessengerInterface $messenger, EntityTypeManagerInterface $entity_type_manager, AssetLocationInterface $asset_location, AccountInterface $current_user) {
     parent::__construct($configuration, $plugin_id, $plugin_definition, $messenger);
     $this->messenger = $messenger;
     $this->entityTypeManager = $entity_type_manager;
@@ -97,13 +87,11 @@ use Psr\Container\ContainerInterface;
     $this->currentUser = $current_user;
   }
 
-  
   /**
    * {@inheritdoc}
-  */
+   */
 
-
-  public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition) {
+   public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition) {
     return new static(
       $configuration,
       $plugin_id,
@@ -115,82 +103,83 @@ use Psr\Container\ContainerInterface;
     );
   }
 
+  /**
+   * {@inheritdoc}
+   */
 
-    public function buildForm(array $form, FormStateInterface $form_state, string $id = NULL) {
+  public function buildForm(array $form, FormStateInterface $form_state, string $id = NULL) {
 
-          // Date of plant protection activity.
-        $form['date'] = [
-            '#type' => 'datetime',
-            '#title' => $this->t('Date'),
-            '#default_value' => new DrupalDateTime('midnight', $this->currentUser->getTimeZone()),
-            '#required' => TRUE,
-        ];
+    // Date of observation.
+    $form['date'] = [
+      '#type' => 'datetime',
+      '#title' => $this->t('Date of observation'),
+      '#default_value' => new DrupalDateTime('midnight', $this->currentUser->getTimeZone()),
+      '#required' => TRUE,
+    ];
+
+    // Assets.
+    $form['asset'] = [
+      '#type' => 'entity_autocomplete',
+      '#title' => $this->t('Assets'),
+      '#description' => $this->t('Which assets are being observed?'),
+      '#target_type' => 'asset',
+      '#selection_settings' => [
+        'sort' => [
+          'field' => 'status',
+          'direction' => 'ASC',
+        ],
+      ],
+      '#maxlength' => 1024,
+      '#tags' => TRUE,
+      '#required' => TRUE,
+      '#ajax' => [
+        'callback' => [$this, 'assetGeometryCallback'],
+        'wrapper' => 'asset-geometry',
+        'event' => 'autocompleteclose change',
+      ],
+    ];
+
+            
+    // Locations.
+    $form['location'] = [
+        '#type' => 'entity_autocomplete',
+        '#title' => $this->t('Locations'),
+        '#description' => $this->t('Where is the assets located ?'),
+        '#target_type' => 'asset',
+        '#selection_handler' => 'views',
+        '#selection_settings' => [
+        'view' => [
+            'view_name' => 'farm_location_reference',
+            'display_name' => 'entity_reference',
+            'arguments' => [],
+        ],
+        'match_operator' => 'CONTAINS',
+        ],
+        '#maxlength' => 1024,
+        '#tags' => TRUE,
+        '#ajax' => [
+        'callback' => [$this, 'locationGeometryCallback'],
+        'wrapper' => 'location-geometry',
+        'event' => 'autocompleteclose change',
+        ],
+    ];
 
 
-     
-//   // Assets.
-//   $form['Name'] = [
-//     '#type' => 'entity_autocomplete',
-//     '#title' => $this->t('Name'),
-//     '#description' => $this->t('Name Of the Log?'),
-//     '#target_type' => 'asset',
-//     '#selection_settings' => [
-//       'sort' => [
-//         'field' => 'status',
-//         'direction' => 'ASC',
-//       ],
-//     ],
-   
-//   ];
 
-$form['name'] = [
-    '#type' => 'textfield',
-    '#title' => t('Name'),
-    '#description' => $this->t('Name Of the Log.'),
-    '#target_type' => 'asset',
-    '#required' => TRUE,
-  ];
-
-
-          
-        // Locations.
-        $form['location'] = [
-            '#type' => 'entity_autocomplete',
-            '#title' => $this->t('Locations'),
-            '#description' => $this->t('Where is the assets located ?'),
-            '#target_type' => 'asset',
-            '#selection_handler' => 'views',
-            '#selection_settings' => [
-            'view' => [
-                'view_name' => 'farm_location_reference',
-                'display_name' => 'entity_reference',
-                'arguments' => [],
-            ],
-            'match_operator' => 'CONTAINS',
-            ],
-            '#maxlength' => 1024,
-            '#tags' => TRUE,
-            '#ajax' => [
-            'callback' => [$this, 'locationGeometryCallback'],
-            'wrapper' => 'location-geometry',
-            'event' => 'autocompleteclose change',
-            ],
-        ];
-
-        
     // Geometry.
     $form['geometry'] = [
         '#type' => 'farm_map_input',
         '#title' => $this->t('Geometry'),
         '#description' => $this->t('The current geometry of the assets is blue. The new geometry is orange. It is copied from the locations selected above, and can be modified to give the assets a more specific geometry.'),
         '#behaviors' => [
-          'quick_movement',
+        'quick_movement',
         ],
         '#display_raw_geometry' => TRUE,
-      ];
-  
-      // Hidden fields to store asset and location geometry.
-      $form['asset_geometry_wrapper'] = [
+    ];
+      
+
+       // Hidden fields to store asset and location geometry.
+       $form['asset_geometry_wrapper'] = [
         '#type' => 'container',
         '#attributes' => [
           'id' => 'asset-geometry',
@@ -213,53 +202,45 @@ $form['name'] = [
         ],
       ];
 
-
     // Notes.
     $form['notes'] = [
-        '#type' => 'details',
-        '#title' => $this->t('Notes'),
-      ];
-      $form['notes']['notes'] = [
-        '#type' => 'text_format',
-        '#title' => $this->t('Notes'),
-        '#title_display' => 'invisible',
-        '#format' => 'default',
-      ];
-  
-      // Done.
-      $form['done'] = [
-        '#type' => 'checkbox',
-        '#title' => $this->t('Completed'),
-        '#default_value' => TRUE,
-      ];
+      '#type' => 'details',
+      '#title' => $this->t('Notes'),
+    ];
+    $form['notes']['notes'] = [
+      '#type' => 'text_format',
+      '#title' => $this->t('Notes'),
+      '#title_display' => 'invisible',
+      '#format' => 'default',
+    ];
+
+    // Done.
+    $form['done'] = [
+      '#type' => 'checkbox',
+      '#title' => $this->t('Completed'),
+      '#default_value' => TRUE,
+    ];
 
     
 
-     
-
-   
-   
-    
-        return $form;
-      }
-      
-
-  /**
+    return $form;
+  }
+/**
    * Ajax callback for asset geometry field.
    */
   public function assetGeometryCallback(array $form, FormStateInterface $form_state) {
     return $form['asset_geometry_wrapper'];
   }
-
-   /**
+/**
    * Ajax callback for location geometry field.
    */
   public function locationGeometryCallback(array $form, FormStateInterface $form_state) {
     return $form['location_geometry_wrapper'];
   }
-    
+   
 
-    /**
+  
+  /**
    * Load assets from entity_autocomplete values.
    *
    * @param array|null $values
@@ -284,8 +265,6 @@ $form['name'] = [
     return $entities;
   }
 
-
-  
   /**
    * Load combined WKT geometry of assets.
    *
@@ -304,7 +283,8 @@ $form['name'] = [
       $geometries[] = $this->assetLocation->getGeometry($asset);
     }
     return $this->combineWkt($geometries);
-}
+  }
+
   /**
    * {@inheritdoc}
    */
@@ -312,51 +292,53 @@ $form['name'] = [
 
     // Validate that a geometry is only present if a location is specified.
     if (empty($form_state->getValue('location')) && !empty($form_state->getValue('geometry'))) {
-      $form_state->setError($form['geometry'], $this->t('A geometry cannot be set if there is no location.'));
-    }
-}
-
-
-
-
-     /**
-     * {@inheritdoc}
-     */
-
-      public function submitForm(array &$form, FormStateInterface $form_state) {
-
-          // Get the submitted values from the form state.
-            $timestamp = $form_state->getValue('date')->getTimestamp();
-            $status = $form_state->getValue('done') ? 'done' : 'pending';
-            $log = [
-                'type' => 'maintenance',
-                'timestamp' => $timestamp,
-                'name' => $form_state->getValue('name'),
-                'location' => $form_state->getValue('location'),
-                'geometry' => $form_state->getValue('geometry'),
-                'notes' => $form_state->getValue('notes'),
-                'status' => $status,
-                'is_movement' => TRUE,
-            ];
-           
-            // Load assets and locations.
-            // $assets = $this->loadEntityAutocompleteAssets($form_state->getValue('asset'));
-            // $locations = $this->loadEntityAutocompleteAssets($form_state->getValue('location'));
-       
-            // // Generate a name for the log.
-            // $log_names = $this->entityLabelsSummary($assets);
-            // $location_names = $this->entityLabelsSummary($locations);
-            // $log['name'] = $this->t('Maintenance Log For @assets', ['@assets' => $log_names]);
-            // if (!empty($location_names)) {
-            // $log['name'] = $this->t('Maintenance Log For @assets in @locations', ['@assets' => $log_names, '@locations' => $location_names]);
-            // }
-
-              // Display a message to the user after data is saved.
-                // drupal_set_message(t('Form submission successful'));
-
-            // Create the log.
-             $this->createLog($log);
+        $form_state->setError($form['geometry'], $this->t('A geometry cannot be set if there is no location.'));
     }
     
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function submitForm(array &$form, FormStateInterface $form_state) {
+
+    // Get the observationdate.
+    /** @var \Drupal\Core\Datetime\DrupalDateTime $observationdate */
+    $observationdate = $form_state->getValue('date');
+
+       // Draft an observation log from the user-submitted data.
+       $timestamp = $form_state->getValue('date')->getTimestamp();
+       $status = $form_state->getValue('done') ? 'done' : 'pending';
+       $log = [
+         'type' => 'observation',
+         'timestamp' => $timestamp,
+         'asset' => $form_state->getValue('asset'),
+         'location' => $form_state->getValue('location'),
+         'geometry' => $form_state->getValue('geometry'),
+         'notes' => $form_state->getValue('notes'),
+         'status' => $status,
+         'is_movement' => FALSE,
+       ];
+   
+       // Load assets and locations.
+       $assets = $this->loadEntityAutocompleteAssets($form_state->getValue('asset'));
+       $locations = $this->loadEntityAutocompleteAssets($form_state->getValue('location'));
+   
+       // Generate a name for the log.
+       $asset_names = $this->entityLabelsSummary($assets);
+       $location_names = $this->entityLabelsSummary($locations);
+       $log['name'] = $this->t('Clear location of @assets', ['@assets' => $asset_names]);
+       if (!empty($location_names)) {
+         $log['name'] = $this->t('Move @assets to @locations', ['@assets' => $asset_names, '@locations' => $location_names]);
+       }
+   
+     
+   // Create the log.
+   $this->createLog($log);
+
+    }
+
+  
+  
 
 }
