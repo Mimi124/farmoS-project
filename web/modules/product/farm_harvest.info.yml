@@ -1,0 +1,10 @@
+name: Product Asset
+description: Provides a Product asset type, quantity type, and taxonomy
+type: module
+package: farmOS Assets
+core_version_requirement: ^9
+dependencies:
+  - drupal:taxonomy
+  - farm:asset
+  - farm:farm_entity
+ 
